@@ -131,11 +131,7 @@ class NewProjectBox extends React.Component {
         </form>
         <br />
         <hr />
-        {/* <form
-          className="uploadForm"
-          name="uploadForm"
-          onSubmit={this.handleProjectAdd}
-        > */}
+
         <h2>Upload Files</h2>
 
         <input
@@ -143,7 +139,7 @@ class NewProjectBox extends React.Component {
           id="singleDataCheckBox"
           name="singleDataCheckBox"
         />
-        <label htmlFor="singleDataCheckBox">FLEX HD Single</label>
+        <label htmlFor="singleDataCheckBox">Flex HD Single File</label>
         <br />
 
         <input
@@ -151,15 +147,12 @@ class NewProjectBox extends React.Component {
           id="multipleDataCheckBox"
           name="multipleDataCheckBox"
         />
-        <label htmlFor="multipleDataCheckBox">Unique File Name</label>
-        <span>Flex HD Multiple File Data</span>
+        <label htmlFor="multipleDataCheckBox">Flex HD Multiple File Data</label>
+        <br />
 
-        <select id="datasetOption" name="datasetOption">
-          <option value="volvo">Flex HD</option>
-        </select>
-
-        <input type="submit" value="Save" />
-        {/* </form> */}
+        <button id="uploadButton" type="button">
+          Upload
+        </button>
       </div>
     );
   }
