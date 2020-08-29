@@ -16,11 +16,15 @@ h2 {
   width: 80%;
 }
 
-.leftcolumn #dataSetNameInput {
+.inputBox #dataSetNameInput {
   width: 95%;
 }
 
-.leftcolumn #createNewDatasetButton {
+.inputBox #createNewDatasetButton {
+  width: 100%;
+}
+
+.inputBox #uploadButton {
   width: 100%;
 }
 
