@@ -98,6 +98,11 @@ h2 {
   width: 200px;
 }
 
+.auditnode td {
+  border-left: none;
+  border-bottom: 2pt solid black;
+}
+
 .inputBox label {
   font-size: 20px;
 }

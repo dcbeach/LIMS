@@ -1,3 +1,16 @@
+function combineExcel() {
+  fetch("/createFile", {
+    method: "POST"
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data.path);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
 class TopBanner extends React.Component {
   render() {
     return (
@@ -11,16 +24,47 @@ class TopBanner extends React.Component {
 class FullUI extends React.Component {
   constructor() {
     super();
-    this.state = { auditTrail: [], inputBoxType: "newProjectView" };
-    this.updateInfoConsole = this.updateInfoConsole.bind(this);
+    this.state = {
+      auditTrail: [],
+      inputBoxType: "newProjectView",
+      dataTrail: []
+    };
     this.updateInputBoxType = this.updateInputBoxType.bind(this);
+    this.handleDataUpload = this.handleDataUpload.bind(this);
   }
 
-  // Updates the Info Console with current actions, results, and successes
-  updateInfoConsole(auditNode) {
-    const newAuditTrail = this.state.auditTrail.slice();
-    newAuditTrail.push(auditNode);
-    this.setState({ auditTrail: newAuditTrail });
+  handleDataUpload(event) {
+    console.log("Handling File Upload");
+    const files = event.target.files;
+    var formData = new FormData();
+
+    for (let i = 0; i < files.length; i++) {
+      var temp = files[i].webkitRelativePath.split("/")[1];
+      if (temp == "lineplot_median.csv") {
+        console.log(`Found it at ${i}`);
+        console.log(files[i]);
+        formData.append("dataFile", files[i]);
+        formData.append("filePath", files[i].webkitRelativePath);
+
+        //Display Sample ID on screen
+        const newDataTrail = this.state.dataTrail.slice();
+        newDataTrail.push(files[i].webkitRelativePath);
+        console.log(newDataTrail);
+        this.setState({ dataTrail: newDataTrail });
+      }
+    }
+
+    // fetch("/saveFile", {
+    //   method: "POST",
+    //   body: formData
+    // })
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     console.log(data.path);
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
   }
 
   updateInputBoxType(type) {
@@ -32,11 +76,11 @@ class FullUI extends React.Component {
     return (
       <React.Fragment>
         <LeftColumn
-          updateInfoConsole={this.updateInfoConsole}
           updateInputBoxType={this.updateInputBoxType}
+          handleDataUpload={this.handleDataUpload}
           inputBoxType={this.state.inputBoxType}
         />
-        <InfoConsole auditTrail={this.state.auditTrail} />
+        <InfoConsole dataTrail={this.state.dataTrail} />
       </React.Fragment>
     );
   }
@@ -49,7 +93,7 @@ class LeftColumn extends React.Component {
         return (
           <div className="leftcolumn">
             <InfoBox updateInputBoxType={this.props.updateInputBoxType} />
-            <NewProjectBox updateInfoConsole={this.props.updateInfoConsole} />
+            <NewProjectBox handleDataUpload={this.props.handleDataUpload} />
           </div>
         );
       case "defaultView":
@@ -76,22 +120,30 @@ function InfoBox(props) {
 class NewProjectBox extends React.Component {
   constructor() {
     super();
-    this.handleProjectAdd = this.handleProjectAdd.bind(this);
+    // this.handleProjectAdd = this.handleProjectAdd.bind(this);
   }
 
-  handleProjectAdd(e) {
-    e.preventDefault();
-    const form = document.forms.projectAdd;
-    const auditNode = {
-      type: "projectAdd",
-      zsl: form.zsl.value,
-      client: form.client.value,
-      description: form.description.value
-    };
-    form.zsl.value = "";
-    form.client.value = "";
-    form.description.value = "";
-    this.props.updateInfoConsole(auditNode);
+  // handleProjectAdd(e) {
+  //   e.preventDefault();
+  //   const form = document.forms.projectAdd;
+  //   const auditNode = {
+  //     type: "projectAdd",
+  //     zsl: form.zsl.value,
+  //     client: form.client.value,
+  //     description: form.description.value
+  //   };
+  //   form.zsl.value = "";
+  //   form.client.value = "";
+  //   form.description.value = "";
+  //   this.props.updateInfoConsole(auditNode);
+  // }
+
+  componentDidMount() {
+    const node = ReactDOM.findDOMNode(this);
+
+    node.querySelector("#uploadButton").addEventListener("change", (event) => {
+      this.props.handleDataUpload(event);
+    });
   }
 
   render() {
@@ -150,9 +202,15 @@ class NewProjectBox extends React.Component {
         <label htmlFor="multipleDataCheckBox">Flex HD Multiple File Data</label>
         <br />
 
-        <button id="uploadButton" type="button">
-          Upload
-        </button>
+        <div id="buttonWrapper">
+          <input
+            type="file"
+            id="uploadButton"
+            name="foo"
+            webkitdirectory="true"
+            multiple
+          />
+        </div>
       </div>
     );
   }
@@ -192,31 +250,29 @@ class LoadData extends React.Component {
 }
 
 function InfoConsole(props) {
-  const auditTrail = props.auditTrail.map((auditNode) => (
-    <AuditNode key={auditNode.id} auditNode={auditNode} />
+  const dataTrail = props.dataTrail.map((dataNode) => (
+    <DataNode key={dataNode.id} dataNode={dataNode} />
   ));
 
   return (
     <div className="infoconsole">
       <table className="auditnode">
-        <tbody>{auditTrail}</tbody>
+        <tbody>{dataTrail}</tbody>
       </table>
     </div>
   );
 }
 
-function AuditNode(props) {
-  const auditNode = props.auditNode;
+function DataNode(props) {
+  const dataNode = props.dataNode;
   return (
     <tr>
       <td className="infocolumn">
-        <b>New Project Created:</b> <br />
-        ZSL: {auditNode.zsl} <br />
-        Client: {auditNode.client} <br />
-        Description: {auditNode.description}
+        <b>New File Uploaded</b> <br />
+        FileName: {dataNode} <br />
       </td>
       <td className="buttoncolumn">
-        <button>Add Data</button>
+        <button>Edit Data</button>
       </td>
     </tr>
   );
