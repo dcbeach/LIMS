@@ -11,6 +11,7 @@ function combineExcel() {
     });
 }
 
+//Display Object: Banner Only
 class TopBanner extends React.Component {
   render() {
     return (
@@ -21,7 +22,8 @@ class TopBanner extends React.Component {
   }
 }
 
-class FullUI extends React.Component {
+//Display Object: The entire Data Manager UI
+class DataManagerUI extends React.Component {
   constructor() {
     super();
     this.state = {
@@ -31,6 +33,7 @@ class FullUI extends React.Component {
       dataSets: [],
       fullDataSet: [],
       infoConsoleDisplayType: "datasetlist",
+      uploadBoxVisible: false,
       chosenDataSet: ""
     };
     this.updateInputBoxType = this.updateInputBoxType.bind(this);
@@ -95,7 +98,8 @@ class FullUI extends React.Component {
         .filter((x) => x.dataset === name)
         .map((a) => a.sampleName),
       chosenDataSet: name,
-      infoConsoleDisplayType: "filelist"
+      infoConsoleDisplayType: "filelist",
+      uploadBoxVisible: true
     });
   }
 
@@ -109,7 +113,7 @@ class FullUI extends React.Component {
 
   //Tells the Info Console to Display List of Data Sets
   viewDataSets() {
-    this.setState({ infoConsoleDisplayType: "datasetlist" });
+    this.setState({ infoConsoleDisplayType: "datasetlist" , uploadBoxVisible: false});
   }
 
   updateInputBoxType(type) {
@@ -126,6 +130,7 @@ class FullUI extends React.Component {
           inputBoxType={this.state.inputBoxType}
           addDataSet={this.addDataSet}
           viewDataSets={this.viewDataSets}
+          uploadBoxVisible={this.state.uploadBoxVisible}
         />
         <InfoConsole
           dataTrail={this.state.dataTrail}
@@ -139,31 +144,40 @@ class FullUI extends React.Component {
   }
 }
 
+//Display Object: Holds the InfoBox and DataControlBox
 class LeftColumn extends React.Component {
   render() {
-    switch (this.props.inputBoxType) {
-      case "newProjectView":
+    switch (this.props.uploadBoxVisible) {
+      case true:
         return (
           <div className="leftcolumn">
             <InfoBox updateInputBoxType={this.props.updateInputBoxType} />
-            <NewProjectBox
-              handleDataUpload={this.props.handleDataUpload}
+            <div className="inputBox">
+            <DataControlBox
+              addDataSet={this.props.addDataSet}
+              viewDataSets={this.props.viewDataSets}
+            />
+            <UploadControlBox handleDataUpload={this.props.handleDataUpload} />
+            </div>
+          </div>
+        );
+      case false:
+        return (
+          <div className="leftcolumn">
+            <InfoBox updateInputBoxType={this.props.updateInputBoxType} />
+            <div className="inputBox">
+            <DataControlBox
               addDataSet={this.props.addDataSet}
               viewDataSets={this.props.viewDataSets}
             />
           </div>
-        );
-      case "defaultView":
-        return (
-          <div className="leftcolumn">
-            <InfoBox updateInputBoxType={this.props.updateInputBoxType} />
-            <DefaultProjectBox />
           </div>
         );
     }
   }
 }
 
+//Display Object: Show basic project info in top left corner
 function InfoBox(props) {
   return (
     <div className="buttonBox">
@@ -174,7 +188,8 @@ function InfoBox(props) {
   );
 }
 
-class NewProjectBox extends React.Component {
+//Display Object: Shows data set options and upload options
+class DataControlBox extends React.Component {
   constructor() {
     super();
     this.handleProjectAdd = this.handleProjectAdd.bind(this);
@@ -187,6 +202,7 @@ class NewProjectBox extends React.Component {
     let dataSetName = document.getElementById("dataSetNameInput").value;
     console.log(`Dataset Name: ${dataSetName}`);
     this.props.addDataSet(dataSetName);
+    document.getElementById("dataSetNameInput").value = "";
   }
 
   handleViewDataSets() {
@@ -200,22 +216,11 @@ class NewProjectBox extends React.Component {
     console.log("E.value = ", e.value);
   }
 
-  componentDidMount() {
-    const node = ReactDOM.findDOMNode(this);
-
-    node.querySelector("#uploadButton").addEventListener("change", (event) => {
-      this.props.handleDataUpload(event);
-    });
-  }
+  
 
   render() {
     return (
-      <div className="inputBox">
-        {/* <form
-          className="datasetForm"
-          name="datasetForm"
-          onSubmit={this.handleProjectAdd}
-        > */}
+      <div>
         <h2>Data Set</h2>
         <table>
           <tbody>
@@ -246,75 +251,58 @@ class NewProjectBox extends React.Component {
             </tr>
           </tbody>
         </table>
-        {/* </form> */}
         <br />
         <hr />
+      </div>
+    );
+  }
+}
 
-        <h2>Upload Files</h2>
+class UploadControlBox extends React.Component {
+  componentDidMount() {
+    const node = ReactDOM.findDOMNode(this);
 
+    node.querySelector("#uploadButton").addEventListener("change", (event) => {
+      this.props.handleDataUpload(event);
+    });
+  }
+
+  render(){
+    return(
+      <div id='uploadDiv'>
+      <h2>Upload Files</h2>
+
+      <input
+        type="checkbox"
+        id="singleDataCheckBox"
+        name="singleDataCheckBox"
+      />
+      <label htmlFor="singleDataCheckBox">Flex HD Single File</label>
+      <br />
+
+      <input
+        type="checkbox"
+        id="multipleDataCheckBox"
+        name="multipleDataCheckBox"
+      />
+      <label htmlFor="multipleDataCheckBox">Flex HD Multiple File Data</label>
+      <br />
+
+      <div id="buttonWrapper">
         <input
-          type="checkbox"
-          id="singleDataCheckBox"
-          name="singleDataCheckBox"
+          type="file"
+          id="uploadButton"
+          name="foo"
+          webkitdirectory="true"
+          multiple
         />
-        <label htmlFor="singleDataCheckBox">Flex HD Single File</label>
-        <br />
-
-        <input
-          type="checkbox"
-          id="multipleDataCheckBox"
-          name="multipleDataCheckBox"
-        />
-        <label htmlFor="multipleDataCheckBox">Flex HD Multiple File Data</label>
-        <br />
-
-        <div id="buttonWrapper">
-          <input
-            type="file"
-            id="uploadButton"
-            name="foo"
-            webkitdirectory="true"
-            multiple
-          />
-        </div>
       </div>
-    );
-  }
+      </div>
+    )
+    }
 }
 
-class DefaultProjectBox extends React.Component {
-  constructor() {
-    super();
-  }
-
-  render() {
-    return (
-      <div>
-        Default <br />
-        box
-      </div>
-    );
-  }
-}
-
-class LoadData extends React.Component {
-  constructor() {
-    super();
-    this.handleUploadClick = this.handleUploadClick.bind(this);
-  }
-
-  handleUploadClick() {}
-
-  render() {
-    return (
-      <div className="loadData">
-        <label>Data Upload Handler</label> <br />
-        <button onClick={this.handleUploadClick}>Load a File</button>
-      </div>
-    );
-  }
-}
-
+//Display Object: Shows specified information depending on selected settings
 function InfoConsole(props) {
   switch (props.infoConsoleDisplayType) {
     case "default":
@@ -355,6 +343,7 @@ function InfoConsole(props) {
   }
 }
 
+//Display Object: Shows list of data sets within this ZSL on the Info Console
 class DataSetNode extends React.Component {
   constructor() {
     super();
@@ -382,6 +371,7 @@ class DataSetNode extends React.Component {
   }
 }
 
+//Display Object: Rows within Data Set - displayed in Info Console
 function DataNode(props) {
   const dataNode = props.dataNode;
   return (
@@ -400,5 +390,5 @@ function DataNode(props) {
 const topBanner = <TopBanner />;
 ReactDOM.render(topBanner, document.getElementById("topbanner"));
 
-const element = <FullUI />;
+const element = <DataManagerUI />;
 ReactDOM.render(element, document.getElementById("content"));
